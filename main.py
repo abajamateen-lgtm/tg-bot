@@ -1,29 +1,39 @@
 import os
 import sys
 from web3 import Web3
+from eth_account import Account
 
-private_key = os.getenv("WALLET_PRIVATE_KEY")
+# Enable mnemonic (seed phrase) features in eth_account
+Account.enable_unaudited_hdwallet_features()
 
-if not private_key:
-    print("Error: WALLET_PRIVATE_KEY secret is missing from GitHub repository settings!")
+secret_input = os.getenv("WALLET_PRIVATE_KEY")
+
+if not secret_input:
+    print("Error: WALLET_PRIVATE_KEY secret is missing!")
     sys.exit(1)
 
-# Clean up private key string in case of accidental spaces or quotes
-private_key = private_key.strip().strip("'").strip('"')
-if not private_key.startswith('0x'):
-    private_key = '0x' + private_key
+secret_input = secret_input.strip()
 
-# Derive public address safely
-try:
-    w3_temp = Web3()
-    account = w3_temp.eth.account.from_key(private_key)
-    wallet_address = account.address
-    print(f"Successfully loaded wallet address: {wallet_address}")
-except Exception as e:
-    print(f"Error parsing private key. Check your GitHub secret value: {e}")
-    sys.exit(1)
+# Check if input is a 12-word phrase or a 64-char private key
+if len(secret_input.split()) >= 12:
+    try:
+        account = Account.from_mnemonic(secret_input)
+        wallet_address = account.address
+        print(f"Derived wallet address from seed phrase: {wallet_address}")
+    except Exception as e:
+        print(f"Error parsing seed phrase: {e}")
+        sys.exit(1)
+else:
+    if not secret_input.startswith('0x'):
+        secret_input = '0x' + secret_input
+    try:
+        account = Account.from_key(secret_input)
+        wallet_address = account.address
+        print(f"Loaded wallet address from private key: {wallet_address}")
+    except Exception as e:
+        print(f"Error parsing private key: {e}")
+        sys.exit(1)
 
-# Reliable public RPC endpoints
 NETWORKS = {
     "Optimism Sepolia": "https://sepolia.optimism.io",
     "Arbitrum Sepolia": "https://sepolia-rollup.arbitrum.io/rpc",
@@ -39,8 +49,8 @@ for name, rpc_url in NETWORKS.items():
             balance_eth = w3.from_wei(balance_wei, 'ether')
             print(f"[{name}] Connected | Balance: {balance_eth} ETH")
         else:
-            print(f"[{name}] Warning: Could not connect to RPC node, skipping...")
+            print(f"[{name}] Could not connect to RPC, skipping...")
     except Exception as e:
-        print(f"[{name}] Network check skipped due to timeout/error: {e}")
+        print(f"[{name}] Network check skipped: {e}")
 
 print("--- MULTI-NETWORK TASK COMPLETED ---\n")
