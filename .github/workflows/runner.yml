@@ -8,6 +8,11 @@ on:
 jobs:
   run-automation:
     runs-on: ubuntu-latest
+    
+    env:
+      WALLET_PRIVATE_KEY: ${{ secrets.WALLET_PRIVATE_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     steps:
       - name: Checkout repository
@@ -23,12 +28,7 @@ jobs:
           pip install web3 requests feedparser eth-account
 
       - name: Run Web3 Multi-Network Bot
-        env:
-          WALLET_PRIVATE_KEY: ${{ secrets.WALLET_PRIVATE_KEY }}
         run: python main.py
 
       - name: Run Airdrop News Summarizer
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python news_summarizer.py
