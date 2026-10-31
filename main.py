@@ -3,7 +3,7 @@ import sys
 from web3 import Web3
 from eth_account import Account
 
-# Enable mnemonic (seed phrase) features in eth_account
+# Enable mnemonic seed phrase support
 Account.enable_unaudited_hdwallet_features()
 
 secret_input = os.getenv("WALLET_PRIVATE_KEY")
@@ -14,14 +14,14 @@ if not secret_input:
 
 secret_input = secret_input.strip()
 
-# Check if input is a 12-word phrase or a 64-char private key
+# Check if input is a 12-word seed phrase or a private key
 if len(secret_input.split()) >= 12:
     try:
         account = Account.from_mnemonic(secret_input)
         wallet_address = account.address
-        print(f"Derived wallet address from seed phrase: {wallet_address}")
+        print(f"Loaded wallet address from seed phrase: {wallet_address}")
     except Exception as e:
-        print(f"Error parsing seed phrase: {e}")
+        print(f"Error reading seed phrase: {e}")
         sys.exit(1)
 else:
     if not secret_input.startswith('0x'):
@@ -31,7 +31,7 @@ else:
         wallet_address = account.address
         print(f"Loaded wallet address from private key: {wallet_address}")
     except Exception as e:
-        print(f"Error parsing private key: {e}")
+        print(f"Error reading private key: {e}")
         sys.exit(1)
 
 NETWORKS = {
